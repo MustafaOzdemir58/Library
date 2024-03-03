@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace Library.Entities.MongoDB.Settings
 {
-    public sealed class DatabaseSettings : IDatabaseSettings
+    public  class DatabaseSettings : IDatabaseSettings
     {
         public string BookCollectionName { get; set; }
         public string ConnectionString { get; set; }

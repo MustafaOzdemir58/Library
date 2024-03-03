@@ -1,4 +1,6 @@
-﻿using System;
+﻿using MongoDB.Bson;
+using MongoDB.Bson.Serialization.Attributes;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -13,12 +15,14 @@ namespace Library.Entities.MongoDB
             this.Authors = new List<Author>();
             this.Publishers = new List<Publisher>();
         }
+        [BsonId]
+        [BsonRepresentation(BsonType.ObjectId)]
         public string Id { get; set; }
         public string Name { get; set; }
         public int PageCount { get; set; }
         public List<Author> Authors { get; set; }
         public DateTime CreatedDate { get; set; }
-        public DateTime PublishedDate { get; set; }
+        public int PublishedYear { get; set; }
         public DateTime UpdateDate { get; set; }
         public DateTime DeletedDate { get; set; }
         public bool IsDeleted { get; set; }

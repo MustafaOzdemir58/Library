@@ -1,5 +1,9 @@
 ﻿using AutoMapper;
+using FluentValidation;
 using Library.Business.Contracts;
+using Library.Business.Extensions;
+using Library.Business.MessageBrokers.RabbitMQ;
+using Library.Business.Validators;
 using Library.Data.Repositories;
 using Library.Entities.MongoDB;
 using Library.Entities.MongoDB.Dtos;
@@ -15,17 +19,26 @@ namespace Library.Business.Concretes
     {
         private IMongoDBRepository<Book> _repository;
         private IMapper _mapper;
+        private readonly IRabbitMQProducer _rabbitMQProducer;
 
 
-        public BookService(IMongoDBRepository<Book> repository, IMapper mapper)
+        public BookService(IMongoDBRepository<Book> repository, IMapper mapper, IRabbitMQProducer rabbitMQProducer)
         {
             _repository = repository;
             _mapper = mapper;
+            _rabbitMQProducer = rabbitMQProducer;
         }
 
         public async Task<bool> CreateAsync(CreateBookDto model)
         {
-            return await _repository.Create(_mapper.Map<Book>(model));
+            var validator = new CreateBookDtoValidator();
+            await validator.ValidateAndThrowAsync(model);
+            var result = await _repository.Create(_mapper.Map<Book>(model));
+            if (result)
+            {
+                await _rabbitMQProducer.SendBookInsertedMessage(model.ToRabbitMQBookCreatedModel());
+            }
+            return result;
         }
 
         public async Task<bool> DeleteAsync(string id)
@@ -41,7 +54,7 @@ namespace Library.Business.Concretes
 
         public async Task<List<BookDto>> GetAllAsync()
         {
-            var data = await _repository.GetAll(x => x.IsDeleted == false && x.DeletedDate == null);
+            var data = await _repository.GetAll(x => x.IsDeleted == false);
             return _mapper.Map<List<BookDto>>(data);
         }
 
@@ -52,7 +65,11 @@ namespace Library.Business.Concretes
 
         public async Task<bool> UpdateAsync(UpdateBookDto model)
         {
-            return await _repository.Update(_mapper.Map<Book>(model));
+            var validator = new UpdateBookDtoValidator();
+            await validator.ValidateAndThrowAsync(model);
+            var book = await _repository.Get(model.Id);
+            if (book is null) return false;
+            return await _repository.Update(model.ToUpdateBookObject(book, _mapper));
         }
     }
 }

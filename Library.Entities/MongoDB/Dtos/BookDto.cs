@@ -18,7 +18,7 @@ namespace Library.Entities.MongoDB.Dtos
         public int PageCount { get; set; }
         public List<AuthorDto> Authors { get; set; }
         public DateTime CreatedDate { get; set; } = DateTime.Now;
-        public DateTime PublishedDate { get; set; }
+        public int PublishedYear{ get; set; }
         public List<PublisherDto> Publishers { get; set; }
     }
 }

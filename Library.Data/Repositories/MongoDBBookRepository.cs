@@ -98,7 +98,7 @@ namespace Library.Data.Repositories
             {
                 return await _collection.Find(predicate).ToListAsync();
             }
-            catch (Exception)
+            catch (Exception ex)
             {
 
                 return default;
@@ -122,6 +122,7 @@ namespace Library.Data.Repositories
         {
             try
             {
+              
                 await _collection.ReplaceOneAsync(x => x.Id == entity.Id, entity);
                 return true;
             }
